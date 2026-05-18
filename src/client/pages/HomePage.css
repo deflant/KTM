@@ -1,0 +1,39 @@
+/* HomePage — Horizon-polished */
+.home-page { display: flex; flex-direction: column; gap: 20px; }
+.home-header-row { display: flex; align-items: center; justify-content: space-between; }
+.home-header-row__title { font: var(--bnp-font-h2); margin: 0; }
+.kpi-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.home-main-grid { display: flex; gap: 20px; }
+.home-main-grid__table { flex: 1; }
+.home-main-grid__table h2 { font: var(--bnp-font-h2); margin: 0 0 12px 0; }
+
+/* Sync button — Horizon actionable pattern */
+.sync-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px;
+    border: none; border-radius: var(--bnp-radius-button);
+    background: var(--bnp-green-primary); color: #fff;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background var(--bnp-transition-fast);
+}
+.sync-btn:hover { background: var(--bnp-green-dark); }
+.sync-btn:disabled, .sync-btn--loading { opacity: 0.7; cursor: not-allowed; }
+.sync-btn:focus-visible { outline: 2px solid var(--bnp-green-accent); outline-offset: 2px; }
+
+/* Message banner */
+.sync-msg {
+    padding: 10px 16px; border-radius: var(--bnp-radius-input);
+    background: var(--bnp-bg-light); font-size: 13px; color: var(--bnp-text-secondary);
+    border: 1px solid var(--bnp-border);
+}
+
+/* Empty state */
+.home-empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px; background: var(--bnp-white);
+    border-radius: var(--bnp-radius-card); border: 1px solid var(--bnp-border);
+    box-shadow: var(--bnp-shadow-card); text-align: center;
+}
+.home-empty-state__icon { font-size: 48px; margin-bottom: 16px; }
+.home-empty-state h3 { font: var(--bnp-font-h2); margin: 0 0 8px 0; }
+.home-empty-state p { color: var(--bnp-muted); font-size: 14px; line-height: 1.6; max-width: 500px; }
+.article-link-ext { color: var(--bnp-green-primary); }

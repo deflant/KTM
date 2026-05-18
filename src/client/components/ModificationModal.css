@@ -1,0 +1,58 @@
+/* ModificationModal — Horizon-polished */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;
+    display: flex; justify-content: flex-end;
+}
+.modal-panel {
+    width: 480px; max-width: 90vw; background: var(--bnp-white);
+    box-shadow: var(--bnp-shadow-modal);
+    display: flex; flex-direction: column; height: 100vh; overflow-y: auto;
+}
+.modal-panel__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; border-bottom: 1px solid var(--bnp-border);
+}
+.modal-panel__header h2 { margin: 0; font: var(--bnp-font-h2); }
+.modal-close {
+    background: none; border: none; font-size: 20px;
+    color: var(--bnp-muted); padding: 4px 8px;
+    border-radius: var(--bnp-radius-button);
+    transition: background var(--bnp-transition-fast), color var(--bnp-transition-fast);
+}
+.modal-close:hover { background: var(--bnp-bg-light); color: var(--bnp-text-dark); }
+.modal-panel__body { padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+/* Form fields — Horizon form-control patterns */
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field span { font: var(--bnp-font-caption); font-weight: 600; color: var(--bnp-text-secondary); }
+.form-field input, .form-field select, .form-field textarea {
+    padding: 8px 12px; border: 1px solid var(--bnp-border);
+    border-radius: var(--bnp-radius-input);
+    font: var(--bnp-font-body); background: var(--bnp-white); color: var(--bnp-text-dark);
+    transition: border-color var(--bnp-transition-fast), box-shadow var(--bnp-transition-fast);
+}
+.form-field input:hover, .form-field select:hover, .form-field textarea:hover {
+    border-color: var(--bnp-border-strong, var(--bnp-border));
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+    outline: none;
+    border-color: var(--bnp-green-accent);
+    box-shadow: 0 0 0 3px rgba(0,168,107,0.15);
+}
+.form-field textarea { resize: vertical; }
+
+/* Actions */
+.modal-panel__actions { display: flex; gap: 12px; padding-top: 12px; }
+.btn-submit {
+    padding: 10px 24px; background: var(--bnp-green-primary); color: #fff;
+    border: none; border-radius: var(--bnp-radius-button); font: var(--bnp-font-body); font-weight: 600;
+    transition: background var(--bnp-transition-fast);
+}
+.btn-submit:hover { background: var(--bnp-green-dark); }
+.btn-submit:focus-visible { outline: 2px solid var(--bnp-green-accent); outline-offset: 2px; }
+.btn-cancel {
+    padding: 10px 24px; background: var(--bnp-white); color: var(--bnp-text-secondary);
+    border: 1px solid var(--bnp-border); border-radius: var(--bnp-radius-button); font: var(--bnp-font-body);
+    transition: background var(--bnp-transition-fast), border-color var(--bnp-transition-fast);
+}
+.btn-cancel:hover { background: var(--bnp-bg-light); border-color: var(--bnp-border-strong, var(--bnp-border)); }

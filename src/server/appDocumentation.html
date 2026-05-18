@@ -1,0 +1,323 @@
+<h1>Knowledge Trust Manager (KTM) — Application Documentation</h1>
+
+<h2>Overview</h2>
+<p>The <strong>Knowledge Trust Manager (KTM)</strong> is a ServiceNow application that provides a centralized workspace for monitoring, reviewing, approving, and maintaining knowledge articles sourced from multiple External Content Connectors (Confluence, SharePoint, Google Drive, Web Crawler, ServiceNow Docs, ServiceNow KB).</p>
+
+<h3>Core Value Proposition</h3>
+<ul>
+  <li><strong>Unified Knowledge Explorer</strong> — Single view of all articles from all connectors</li>
+  <li><strong>Review Workflows</strong> — Structured approval process with reviewer assignments</li>
+  <li><strong>Modification Request Lifecycle</strong> — Task-based change requests (extends task)</li>
+  <li><strong>Freshness Scoring</strong> — Automatic aging tracking (Fresh → Aging → Stale)</li>
+  <li><strong>Analytics Dashboards</strong> — KPIs, source health scorecards, reviewer performance</li>
+  <li><strong>Source Exclusion Management</strong> — Configure which connectors to exclude from views</li>
+  <li><strong>AI-Powered Triage</strong> — Automatic reviewer assignment via AI Agent</li>
+  <li><strong>Approval Workflows</strong> — Resolution approvals via sysapproval_approver</li>
+</ul>
+
+<h3>Application Metadata</h3>
+<table>
+  <tr><th>Property</th><th>Value</th></tr>
+  <tr><td>Name</td><td>Knowledge Trust Manager</td></tr>
+  <tr><td>Scope</td><td>x_snc_knowledge_tr</td></tr>
+  <tr><td>Version</td><td>1.0.0</td></tr>
+</table>
+
+<hr/>
+
+<h2>Data Model — Custom Tables</h2>
+
+<h3>1. Review Record (x_snc_knowledge_tr_review_record)</h3>
+<p>The central table tracking review state for every knowledge article.</p>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td>article</td><td>Reference → kb_knowledge</td><td>Optional — null for external-only docs</td></tr>
+  <tr><td>external_doc_id</td><td>String(255)</td><td>External document identifier</td></tr>
+  <tr><td>external_doc_title</td><td>String(500)</td><td>Title from external source</td></tr>
+  <tr><td>external_doc_url</td><td>URL</td><td>Link to external document</td></tr>
+  <tr><td>external_doc_table</td><td>String(255)</td><td>Source table name</td></tr>
+  <tr><td>display_title</td><td>String(500)</td><td>Computed display title</td></tr>
+  <tr><td>review_status</td><td>Choice</td><td>pending_review, in_review, approved, modification_requested, re_review_needed</td></tr>
+  <tr><td>freshness_score</td><td>Choice</td><td>fresh, aging, stale</td></tr>
+  <tr><td>last_reviewed_on</td><td>DateTime</td><td>When last reviewed</td></tr>
+  <tr><td>last_reviewed_by</td><td>Reference → sys_user</td><td>Who last reviewed</td></tr>
+  <tr><td>assigned_reviewer</td><td>Reference → sys_user</td><td>Current assignee</td></tr>
+  <tr><td>reviewer_group</td><td>Reference → sys_user_group</td><td>Assigned group</td></tr>
+  <tr><td>source_connector_name</td><td>String(255)</td><td>E.g., "Confluence Cloud - BNP"</td></tr>
+  <tr><td>source_connector_type</td><td>Choice</td><td>confluence, sharepoint, google_drive, web_crawler, servicenow_docs, servicenow_kb</td></tr>
+  <tr><td>last_external_update</td><td>DateTime</td><td>Last sync from source</td></tr>
+  <tr><td>content_hash</td><td>String(64)</td><td>For change detection</td></tr>
+  <tr><td>review_notes</td><td>String(4000)</td><td>Reviewer comments</td></tr>
+  <tr><td>days_since_last_review</td><td>Integer (read-only)</td><td>Computed</td></tr>
+  <tr><td>days_since_last_update</td><td>Integer (read-only)</td><td>Computed</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Active flag</td></tr>
+</table>
+
+<h3>2. Modification Request (x_snc_knowledge_tr_modification_request)</h3>
+<p>Extends <code>task</code> — used to request changes to articles.</p>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td>review_record</td><td>Reference → review_record</td><td>Linked review (mandatory)</td></tr>
+  <tr><td>modification_type</td><td>Choice</td><td>content_update, factual_correction, outdated_info, missing_section, formatting_issue, retire_article</td></tr>
+  <tr><td>target_resolution_date</td><td>Date</td><td>Target resolution</td></tr>
+  <tr><td>resolution_summary</td><td>String(4000)</td><td>Required on resolve</td></tr>
+  <tr><td>requested_by_reviewer</td><td>Reference → sys_user</td><td>Who requested (mandatory)</td></tr>
+</table>
+<p><strong>Auto-number:</strong> KMR0001000+</p>
+<p><strong>Lifecycle:</strong> Draft → Submitted → In Progress → Resolved / Rejected / Cancelled</p>
+
+<h3>3. Source Exclusion (x_snc_knowledge_tr_source_exclusion)</h3>
+<p>Configuration table for excluding specific connector sources.</p>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td>source_name</td><td>String(255)</td><td>Source to exclude (unique, mandatory)</td></tr>
+  <tr><td>exclusion_reason</td><td>String(500)</td><td>Why excluded</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Whether exclusion is active</td></tr>
+  <tr><td>excluded_by</td><td>Reference → sys_user</td><td>Who created</td></tr>
+  <tr><td>excluded_on</td><td>DateTime</td><td>When created</td></tr>
+</table>
+
+<h3>4. Article List (x_snc_knowledge_tr_article_list)</h3>
+<p>Central catalog of all synced articles (both external and internal KB).</p>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td>article_title</td><td>String(500)</td><td>Title (mandatory)</td></tr>
+  <tr><td>article_url</td><td>URL</td><td>Link to article</td></tr>
+  <tr><td>external_doc_id</td><td>String(255)</td><td>Dedup key</td></tr>
+  <tr><td>source_connector_name</td><td>String(255)</td><td>Source name</td></tr>
+  <tr><td>source_connector_type</td><td>Choice</td><td>Same as review_record</td></tr>
+  <tr><td>review_record</td><td>Reference → review_record</td><td>Linked review</td></tr>
+  <tr><td>synced_on</td><td>DateTime</td><td>When synced</td></tr>
+  <tr><td>last_external_update</td><td>DateTime</td><td>Last source update</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Active flag</td></tr>
+</table>
+
+<hr/>
+
+<h2>REST API</h2>
+<p><strong>Base URI:</strong> <code>/api/x_snc_knowledge_tr/v1/ktm/</code></p>
+
+<h3>Review Records</h3>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/review-records</td><td>Paginated, filterable list (params: status, freshness, source, reviewer, page, limit)</td></tr>
+  <tr><td>GET</td><td>/review-records/{id}</td><td>Single record with full article content</td></tr>
+  <tr><td>PATCH</td><td>/review-records/{id}</td><td>Update status, assign reviewer, approve</td></tr>
+</table>
+
+<h3>Modification Requests</h3>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/modification-requests</td><td>Paginated list (params: state, assigned_to, priority, page, limit)</td></tr>
+  <tr><td>POST</td><td>/modification-requests</td><td>Create new modification request</td></tr>
+</table>
+
+<h3>Analytics (5 endpoints)</h3>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/analytics/kpis</td><td>Summary KPIs: total articles, approval rate, stale rate, open mods</td></tr>
+  <tr><td>GET</td><td>/analytics/source-health</td><td>Per-connector health scorecard</td></tr>
+  <tr><td>GET</td><td>/analytics/modification-stats</td><td>Mod request stats by state/type, avg resolution time</td></tr>
+  <tr><td>GET</td><td>/analytics/reviewer-stats</td><td>Reviewer performance, workload, unassigned count</td></tr>
+  <tr><td>GET</td><td>/analytics/freshness-stats</td><td>Freshness distribution, age buckets, coverage gaps</td></tr>
+</table>
+
+<h3>Configuration &amp; Sync</h3>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/source-exclusions</td><td>All exclusion configurations</td></tr>
+  <tr><td>GET</td><td>/connectors</td><td>Distinct active source connectors</td></tr>
+  <tr><td>GET</td><td>/article-list</td><td>Paginated synced articles catalog</td></tr>
+  <tr><td>POST</td><td>/sync-connectors</td><td>Stub (client-side AI Search)</td></tr>
+  <tr><td>POST</td><td>/sync-kb-articles</td><td>Scan published KB articles → create review records + article list</td></tr>
+  <tr><td>POST</td><td>/sync-external-docs</td><td>Ingest external docs from client</td></tr>
+  <tr><td>GET</td><td>/connector-host</td><td>Resolve base host URL for external connector</td></tr>
+</table>
+
+<hr/>
+
+<h2>Business Rules</h2>
+
+<h3>On Review Records</h3>
+<table>
+  <tr><th>Name</th><th>When</th><th>Trigger</th><th>Logic</th></tr>
+  <tr><td>Set Re-Review on Content Change</td><td>Before Update</td><td>content_hash changes</td><td>Reset review_status → re_review_needed, clear last_reviewed_on</td></tr>
+  <tr><td>Auto-populate Source Metadata</td><td>Before Insert</td><td>New record</td><td>Reads linked kb_knowledge → populates source connector fields</td></tr>
+  <tr><td>Prevent Approval Without Notes</td><td>Before Update</td><td>Status → approved</td><td>Aborts if review_notes is empty</td></tr>
+</table>
+
+<h3>On Modification Requests</h3>
+<table>
+  <tr><th>Name</th><th>When</th><th>Trigger</th><th>Logic</th></tr>
+  <tr><td>Update Review Status on Creation</td><td>After Insert</td><td>New mod request</td><td>Sets linked review record to modification_requested</td></tr>
+  <tr><td>Set Re-Review on Resolution</td><td>After Update</td><td>State → resolved (3)</td><td>Sets linked review record to re_review_needed</td></tr>
+  <tr><td>Require Resolution Summary</td><td>Before Update</td><td>State → resolved</td><td>Aborts if resolution_summary is empty</td></tr>
+  <tr><td>Create Approval on Resolution</td><td>After Update</td><td>State → resolved</td><td>Creates sysapproval_approver record for System Admin to validate</td></tr>
+</table>
+
+<h3>On Source Exclusions</h3>
+<table>
+  <tr><th>Name</th><th>When</th><th>Trigger</th><th>Logic</th></tr>
+  <tr><td>Deactivate Reviews for Excluded Source</td><td>After Insert/Update</td><td>Exclusion activated</td><td>Deactivates matching review records</td></tr>
+  <tr><td>Reactivate Reviews on Exclusion Removal</td><td>After Update</td><td>Exclusion deactivated</td><td>Reactivates matching review records</td></tr>
+</table>
+
+<hr/>
+
+<h2>Security Model</h2>
+
+<h3>Roles</h3>
+<table>
+  <tr><th>Role</th><th>Description</th><th>Inherits</th></tr>
+  <tr><td>x_snc_knowledge_tr.admin</td><td>Full App Administrator (scopedAdmin)</td><td>coordinator</td></tr>
+  <tr><td>x_snc_knowledge_tr.coordinator</td><td>Manages assignments &amp; analytics</td><td>reviewer</td></tr>
+  <tr><td>x_snc_knowledge_tr.reviewer</td><td>Approve/flag articles, create mods</td><td>consumer</td></tr>
+  <tr><td>x_snc_knowledge_tr.consumer</td><td>Read-only access</td><td>—</td></tr>
+</table>
+
+<h3>ACL Matrix</h3>
+<table>
+  <tr><th>Table</th><th>Read</th><th>Write</th><th>Create</th><th>Delete</th></tr>
+  <tr><td>review_record</td><td>All authenticated</td><td>Reviewer+</td><td>Admin only</td><td>Admin only</td></tr>
+  <tr><td>modification_request</td><td>All authenticated</td><td>Reviewer+</td><td>Reviewer+</td><td>Admin only</td></tr>
+  <tr><td>source_exclusion</td><td>All authenticated</td><td>Admin only</td><td>Admin only</td><td>Admin only</td></tr>
+  <tr><td>article_list</td><td>All authenticated</td><td>Admin only</td><td>Admin only</td><td>Admin only</td></tr>
+</table>
+<p><strong>Field-level:</strong> review_notes write restricted to Reviewer+</p>
+
+<hr/>
+
+<h2>User Interface — React SPA Workspace</h2>
+<p><strong>Endpoint:</strong> <code>x_snc_knowledge_tr_workspace.do</code></p>
+<p>The application provides a single-page application (SPA) built with React, served via a ServiceNow UI Page. It uses client-side hash routing.</p>
+
+<h3>Pages</h3>
+<table>
+  <tr><th>Route</th><th>Page</th><th>Description</th></tr>
+  <tr><td>#home</td><td>HomePage</td><td>Dashboard with KPI cards, review record table</td></tr>
+  <tr><td>#article-list</td><td>ArticleListPage</td><td>Full catalog of synced articles</td></tr>
+  <tr><td>#detail/{id}</td><td>ArticleDetailPage</td><td>Single article with review actions</td></tr>
+  <tr><td>#modifications</td><td>ModificationRequestsPage</td><td>Mod request list</td></tr>
+  <tr><td>#mod-detail/{id}</td><td>ModificationRequestDetailPage</td><td>Single mod request</td></tr>
+  <tr><td>#analytics</td><td>AnalyticsPage</td><td>Charts &amp; scorecards</td></tr>
+  <tr><td>#config</td><td>ConfigurationPage</td><td>Source exclusion management</td></tr>
+</table>
+
+<h3>Key Components</h3>
+<ul>
+  <li><strong>NavSidebar</strong> — Navigation sidebar</li>
+  <li><strong>KPICard</strong> — KPI metric card</li>
+  <li><strong>DataTable</strong> — Sortable/filterable table</li>
+  <li><strong>FilterBar</strong> — Filter pills</li>
+  <li><strong>StatusPill</strong> — Color-coded status badges</li>
+  <li><strong>BarChart / DonutChart</strong> — Chart visualizations</li>
+  <li><strong>ScorecardTable</strong> — Source health scorecard</li>
+  <li><strong>ActionButtonBar</strong> — Contextual action buttons</li>
+  <li><strong>ApproveModal / ModificationModal / ReassignModal / RemovalModal</strong> — Action modals</li>
+</ul>
+
+<hr/>
+
+<h2>System Properties (Configuration)</h2>
+<table>
+  <tr><th>Property</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+  <tr><td>freshness.fresh_threshold</td><td>Integer</td><td>30 days</td><td>Max days to be "Fresh"</td></tr>
+  <tr><td>freshness.stale_threshold</td><td>Integer</td><td>90 days</td><td>Days after which "Stale"</td></tr>
+  <tr><td>sla.review_days</td><td>Integer</td><td>5 business days</td><td>SLA for initial review</td></tr>
+  <tr><td>sla.modification_days</td><td>Integer</td><td>10 business days</td><td>SLA for modification resolution</td></tr>
+  <tr><td>sla.re_review_days</td><td>Integer</td><td>3 business days</td><td>SLA for re-review after modification</td></tr>
+</table>
+
+<hr/>
+
+<h2>AI Agent: KTM Article Triage Agent</h2>
+<p>An AI Agent that automatically triages newly created review records:</p>
+<ol>
+  <li>Analyzes article metadata (title, source, freshness)</li>
+  <li>Determines content domain</li>
+  <li>Searches for available reviewers with workload balancing</li>
+  <li>Assigns the best-fit reviewer and sets status to in_review</li>
+</ol>
+<p><strong>Trigger:</strong> Fires automatically on record creation (x_snc_knowledge_tr_review_record)</p>
+<p><strong>Security:</strong> Restricted to Coordinator and Admin roles</p>
+
+<hr/>
+
+<h2>Cross-Scope Privileges</h2>
+<p>The application grants read access to External Content Connector tables:</p>
+<ul>
+  <li>sn_ext_conn_admin_connector_summary (connector summary)</li>
+  <li>sn_ext_conn_cc_external_search_schema (Confluence Cloud)</li>
+  <li>sn_ext_conn_sp_external_search_schema (SharePoint)</li>
+  <li>sn_ext_conn_wc_external_search_schema (Web Crawler)</li>
+  <li>sn_ext_conn_sn_docs_external_search_schema (ServiceNow Docs)</li>
+  <li>v_ais_external_search_content (AI Search virtual table)</li>
+  <li>sys_search_context_config (search config)</li>
+</ul>
+
+<hr/>
+
+<h2>Navigation Structure</h2>
+<pre>
+Knowledge Trust Manager (Application Menu)
+├── Workspace (→ UI Page)
+├── ── Data ──
+├── Review Records (→ List view)
+├── Modification Requests (→ List view)
+├── ── Administration ──  [admin only]
+└── Source Exclusions (→ List view)
+</pre>
+
+<hr/>
+
+<h2>Getting Started</h2>
+<h3>Prerequisites</h3>
+<ul>
+  <li>ServiceNow instance with External Content Connectors plugin installed</li>
+  <li>Knowledge Management (KM) plugin active</li>
+  <li>AI Search capabilities for external document sync</li>
+</ul>
+
+<h3>Accessing the Application</h3>
+<ol>
+  <li>Navigate to <strong>Knowledge Trust Manager → Workspace</strong> in the application navigator</li>
+  <li>The React SPA workspace opens with the Home dashboard</li>
+  <li>Use the sidebar navigation to access different sections</li>
+</ol>
+
+<h3>Role Assignment</h3>
+<ul>
+  <li>Assign <code>x_snc_knowledge_tr.admin</code> for full administrative access</li>
+  <li>Assign <code>x_snc_knowledge_tr.coordinator</code> for assignment management and analytics</li>
+  <li>Assign <code>x_snc_knowledge_tr.reviewer</code> for article review and modification requests</li>
+  <li>Assign <code>x_snc_knowledge_tr.consumer</code> for read-only access</li>
+</ul>
+
+<hr/>
+
+<h2>Key Workflows</h2>
+
+<h3>Article Review Process</h3>
+<ol>
+  <li>Articles are synced from external connectors or ServiceNow KB</li>
+  <li>AI Triage Agent automatically assigns a reviewer</li>
+  <li>Reviewer examines the article and either approves (with notes) or creates a modification request</li>
+  <li>Approved articles are marked as reviewed; modification requests enter the task lifecycle</li>
+</ol>
+
+<h3>Modification Request Lifecycle</h3>
+<ol>
+  <li>Reviewer creates a modification request linked to a review record</li>
+  <li>Review record status changes to "modification_requested"</li>
+  <li>Assigned user works on the modification (Draft → Submitted → In Progress)</li>
+  <li>Upon resolution, a resolution summary is required</li>
+  <li>An approval is automatically created for System Admin validation</li>
+  <li>Review record is set to "re_review_needed" for re-examination</li>
+</ol>
+
+<h3>Freshness Scoring</h3>
+<ul>
+  <li><strong>Fresh</strong> (0-30 days) — Article is current</li>
+  <li><strong>Aging</strong> (31-89 days) — Article may need attention</li>
+  <li><strong>Stale</strong> (90+ days) — Article needs immediate review</li>
+</ul>

@@ -1,0 +1,6 @@
+{
+  "scope": "x_snc_knowledge_tr",
+  "scopeId": "158841540f8807d024f037e300d1b2d4",
+  "name": "Knowledge Trust Manager",
+  "tsconfigPath": "./src/server/tsconfig.json"
+}

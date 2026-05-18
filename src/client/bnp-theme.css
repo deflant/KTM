@@ -1,0 +1,85 @@
+/* BNP Paribas × ServiceNow Horizon — Knowledge Trust Manager Theme
+   ================================================================
+   Brand greens preserved · Structural tokens from Horizon design system
+   Dark-mode ready via --now-* token fallbacks                          */
+
+:root {
+    /* ─── BNP Brand Colors (preserved) ───────────────────────────── */
+    --bnp-green-primary: #00915A;
+    --bnp-green-dark: #006742;
+    --bnp-green-accent: #00A86B;
+    --bnp-green-light: #E8F5E9;
+
+    /* ─── Neutral Colors (Horizon tokens with fallbacks) ─────────── */
+    --bnp-text-dark: rgb(var(--now-color_text--primary, 16,23,26));
+    --bnp-text-secondary: rgb(var(--now-color_text--secondary, 35,46,51));
+    --bnp-bg-light: rgb(var(--now-color_background--secondary, 245,246,247));
+    --bnp-white: rgb(var(--now-color_background--primary, 255,255,255));
+    --bnp-muted: rgb(var(--now-color_text--tertiary, 55,68,74));
+    --bnp-border: rgb(var(--now-color_border--tertiary, 207,213,215));
+    --bnp-border-strong: rgb(var(--now-color_border--secondary, 170,178,182));
+    --bnp-row-hover: #E8F5E9;
+
+    /* ─── Semantic Colors ────────────────────────────────────────── */
+    --bnp-warning: #E8A317;
+    --bnp-error: rgb(var(--now-indicator--primary_critical--background-color, 228,35,56));
+    --bnp-info: rgb(var(--now-color--primary-1, 0,128,163));
+
+    /* ─── Chart Palette (BNP brand) ──────────────────────────────── */
+    --bnp-chart-1: #006742;
+    --bnp-chart-2: #00915A;
+    --bnp-chart-3: #00A86B;
+    --bnp-chart-4: #66CDAA;
+    --bnp-chart-5: #B2DFDB;
+
+    /* ─── Typography (Horizon structure, BNP-first fallback) ─────── */
+    --bnp-font-family: 'BNP Sans', 'Cabin', 'Helvetica Neue', Arial, sans-serif;
+    --bnp-font-h1: 700 28px/1.2 var(--bnp-font-family);
+    --bnp-font-h2: 700 22px/1.3 var(--bnp-font-family);
+    --bnp-font-h3: 600 18px/1.4 var(--bnp-font-family);
+    --bnp-font-body: 400 14px/1.5 var(--bnp-font-family);
+    --bnp-font-caption: 400 12px/1.4 var(--bnp-font-family);
+
+    /* ─── Spacing & Radius (Horizon values) ──────────────────────── */
+    --bnp-radius-card: var(--now-container-card--border-radius, 4px);
+    --bnp-radius-input: var(--now-form-control--border-radius, 6px);
+    --bnp-radius-pill: var(--now-form-control-pill--border-radius, 16px);
+    --bnp-radius-button: var(--now-actionable--border-radius, 6px);
+    --bnp-radius-circle: 50%;
+
+    /* ─── Elevation (Horizon-style layered shadows) ──────────────── */
+    --bnp-shadow-card: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10);
+    --bnp-shadow-card-hover: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10);
+    --bnp-shadow-modal: 0 8px 24px rgba(0,0,0,0.18);
+
+    /* ─── Transitions ────────────────────────────────────────────── */
+    --bnp-transition-fast: 150ms ease;
+    --bnp-transition-normal: 250ms ease;
+}
+
+/* ─── Reset & Base ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    font: var(--bnp-font-body);
+    color: var(--bnp-text-dark);
+    background: var(--bnp-bg-light);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+h1 { font: var(--bnp-font-h1); margin: 0 0 16px 0; }
+h2 { font: var(--bnp-font-h2); margin: 0 0 12px 0; }
+h3 { font: var(--bnp-font-h3); margin: 0 0 8px 0; }
+p  { margin: 0 0 8px 0; }
+a  { color: var(--bnp-green-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: var(--bnp-font-family); cursor: pointer; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+form { margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+
+/* ─── Focus ring (Horizon accessibility) ─────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--bnp-green-accent);
+    outline-offset: 2px;
+}

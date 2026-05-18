@@ -1,0 +1,13 @@
+/* App Layout — Horizon-polished */
+.app-layout { display: flex; min-height: 100vh; }
+.app-main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+.app-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--bnp-green-dark); color: #fff; padding: 0 24px; height: 56px;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.app-topbar__title { font: var(--bnp-font-h3); color: #fff; margin: 0; }
+.app-topbar__user { display: flex; align-items: center; gap: 8px; }
+.app-topbar__avatar { font-size: 24px; }
+.app-content { padding: 24px; flex: 1; }

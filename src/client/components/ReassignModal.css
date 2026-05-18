@@ -1,0 +1,28 @@
+/* ReassignModal — Horizon-polished */
+.reassign-loading { font-size: 13px; color: var(--bnp-muted); margin: 0; }
+.reassign-results {
+    display: flex; flex-direction: column; gap: 4px;
+    max-height: 280px; overflow-y: auto;
+    border: 1px solid var(--bnp-border); border-radius: var(--bnp-radius-input);
+}
+.reassign-user {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    background: var(--bnp-white); border: none; border-bottom: 1px solid var(--bnp-border);
+    cursor: pointer; text-align: left; width: 100%;
+    transition: background var(--bnp-transition-fast);
+}
+.reassign-user:last-child { border-bottom: none; }
+.reassign-user:hover { background: var(--bnp-bg-light); }
+.reassign-user--selected {
+    background: var(--bnp-green-light);
+    border-left: 3px solid var(--bnp-green-primary);
+}
+.reassign-user__avatar { font-size: 20px; flex-shrink: 0; }
+.reassign-user__info { flex: 1; min-width: 0; }
+.reassign-user__name { font-size: 14px; font-weight: 600; color: var(--bnp-text-dark); }
+.reassign-user__meta { font-size: 12px; color: var(--bnp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reassign-selected {
+    padding: 8px 12px; background: var(--bnp-green-light);
+    border-radius: var(--bnp-radius-input);
+    font-size: 13px; color: var(--bnp-green-dark);
+}

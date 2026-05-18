@@ -1,0 +1,9 @@
+/* DonutChart — Horizon-polished */
+.donut-chart { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.donut-chart__title { font: var(--bnp-font-h3); margin: 0; }
+.donut-slice { transition: opacity var(--bnp-transition-fast); }
+.donut-slice:hover { opacity: 0.8; }
+.donut-center-text { font: var(--bnp-font-h2); fill: var(--bnp-text-dark); }
+.donut-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.donut-legend__item { display: flex; align-items: center; gap: 4px; font: var(--bnp-font-caption); color: var(--bnp-text-secondary); }
+.donut-legend__dot { width: 10px; height: 10px; border-radius: var(--bnp-radius-circle); display: inline-block; }

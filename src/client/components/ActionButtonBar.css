@@ -1,0 +1,51 @@
+/* ActionButtonBar — BNP brand + Horizon semantic indicator tokens */
+.action-btn-bar { display: flex; flex-direction: column; gap: 8px; }
+.action-btn {
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    border-radius: var(--bnp-radius-button, 6px); font: var(--bnp-font-body); font-weight: 600;
+    cursor: pointer; border: 1px solid var(--bnp-border);
+    transition: background var(--bnp-transition-fast), border-color var(--bnp-transition-fast), box-shadow var(--bnp-transition-fast);
+}
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.action-btn:focus-visible { outline: 2px solid var(--bnp-green-accent); outline-offset: 2px; }
+
+/* Approve — BNP green tint */
+.action-btn--approve {
+    background: var(--bnp-green-light);
+    color: var(--bnp-green-dark);
+    border-color: rgb(var(--now-indicator--secondary_positive--border-color, 51,131,11));
+}
+.action-btn--approve:hover:not(:disabled) {
+    background: rgb(var(--now-indicator--tertiary_positive--background-color, 202,223,192));
+}
+
+/* Modify — Horizon warning */
+.action-btn--modify {
+    background: rgb(var(--now-indicator--tertiary_warning--background-color, 251,247,191));
+    color: rgb(var(--now-indicator--primary_warning--border-color, 182,170,0));
+    border-color: rgb(var(--now-indicator--secondary_warning--border-color, 240,224,0));
+}
+.action-btn--modify:hover:not(:disabled) {
+    background: rgb(var(--now-indicator--secondary_warning--background-color, 246,236,96));
+}
+
+/* Remove — Horizon critical */
+.action-btn--remove {
+    background: rgb(var(--now-indicator--tertiary_critical--background-color, 248,200,205));
+    color: rgb(var(--now-indicator--primary_critical--border-color, 182,28,45));
+    border-color: rgb(var(--now-indicator--secondary_critical--border-color, 228,35,56));
+}
+.action-btn--remove:hover:not(:disabled) {
+    background: rgb(var(--now-indicator--secondary_critical--background-color, 238,118,131));
+}
+
+/* Reassign — neutral */
+.action-btn--reassign {
+    background: var(--bnp-white);
+    color: var(--bnp-text-secondary);
+    border-color: var(--bnp-border);
+}
+.action-btn--reassign:hover:not(:disabled) {
+    background: var(--bnp-bg-light);
+    border-color: var(--bnp-border-strong, var(--bnp-border));
+}

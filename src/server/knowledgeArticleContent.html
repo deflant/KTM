@@ -1,0 +1,479 @@
+<h1>Knowledge Trust Manager (KTM) — Documentation Technique &amp; Fonctionnelle</h1>
+
+<p><strong>Application :</strong> Knowledge Trust Manager<br/>
+<strong>Scope :</strong> x_snc_knowledge_tr<br/>
+<strong>Version SDK :</strong> 4.5.0 (Now SDK Fluent)<br/>
+<strong>Technologies :</strong> ServiceNow Platform, React 18, Scripted REST API, Business Rules</p>
+
+<hr/>
+
+<h2>1. Vue d'ensemble</h2>
+
+<p>Le <strong>Knowledge Trust Manager (KTM)</strong> est une application ServiceNow scoped conçue pour superviser, vérifier et maintenir la qualité des articles de connaissance issus de multiples sources externes (Confluence Cloud, SharePoint Online, Web Crawler, Google Drive) ainsi que des bases de connaissance internes ServiceNow (kb_knowledge).</p>
+
+<p>L'application offre un <strong>espace de travail centralisé</strong> (Workspace) sous forme d'une Single Page Application (SPA) React, permettant aux équipes de :</p>
+<ul>
+    <li>📋 Explorer et filtrer l'ensemble des articles synchronisés</li>
+    <li>✅ Réviser et approuver les articles via un workflow structuré</li>
+    <li>📝 Créer des demandes de modification traçables (extension de <code>task</code>)</li>
+    <li>📊 Analyser la santé des bases de connaissance grâce à des tableaux de bord interactifs</li>
+    <li>⚙️ Configurer les exclusions de sources et les seuils de fraîcheur</li>
+</ul>
+
+<hr/>
+
+<h2>2. Enjeux métier</h2>
+
+<h3>2.1. Prolifération des sources de connaissance</h3>
+<p>Les organisations modernes utilisent simultanément Confluence, SharePoint, des wikis internes et ServiceNow Knowledge. Cette dispersion crée un <strong>risque d'incohérence</strong> et d'<strong>obsolescence silencieuse</strong> : des articles périmés continuent d'être consommés sans contrôle qualité.</p>
+
+<h3>2.2. Absence de gouvernance unifiée</h3>
+<p>Sans outil dédié, il n'existe aucune visibilité centralisée sur l'état de revue des articles, aucun SLA de fraîcheur, et aucun processus formel de demande de modification. Les Knowledge Managers doivent naviguer entre plusieurs systèmes sans tableau de bord consolidé.</p>
+
+<h3>2.3. Conformité et auditabilité</h3>
+<p>Dans les secteurs réglementés (banque, assurance, santé), la capacité à démontrer que les articles de connaissance sont <strong>régulièrement revus</strong>, <strong>approuvés par des experts</strong>, et <strong>mis à jour en temps voulu</strong> est un impératif de conformité.</p>
+
+<h3>2.4. Charge opérationnelle des reviewers</h3>
+<p>Les experts métier (SME) passent un temps considérable à identifier manuellement les articles nécessitant une revue. L'automatisation du scoring de fraîcheur et de l'assignation permet de <strong>réduire cette charge et focaliser l'effort sur les articles à risque</strong>.</p>
+
+<hr/>
+
+<h2>3. Proposition de valeur</h2>
+
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Bénéfice</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Visibilité 360°</strong></td>
+            <td>Vue unique sur tous les articles issus de Confluence, SharePoint, Web Crawler et ServiceNow KB, avec filtrage par source, statut, fraîcheur et reviewer.</td>
+        </tr>
+        <tr>
+            <td><strong>Workflow de revue structuré</strong></td>
+            <td>Cycle de vie complet : Pending Review → In Review → Approved / Modification Requested → Re-Review Needed. Chaque transition est tracée et auditée.</td>
+        </tr>
+        <tr>
+            <td><strong>Scoring de fraîcheur automatique</strong></td>
+            <td>Trois niveaux (Fresh / Aging / Stale) calculés dynamiquement selon des seuils configurables (par défaut 30/90 jours). Permet d'identifier instantanément les articles à risque.</td>
+        </tr>
+        <tr>
+            <td><strong>Demandes de modification traçables</strong></td>
+            <td>Les KMR (Knowledge Modification Requests) étendent la table <code>task</code>, bénéficiant de la numérotation automatique (KMR0001000+), de l'assignation, des priorités et des SLA ServiceNow natifs.</td>
+        </tr>
+        <tr>
+            <td><strong>Analytics avancées</strong></td>
+            <td>KPI en temps réel, santé par connecteur, performance des reviewers, distribution de fraîcheur, temps moyen de résolution des modifications — le tout dans des graphiques interactifs (Donut, Bar Chart, Scorecard).</td>
+        </tr>
+        <tr>
+            <td><strong>Exclusion de sources configurable</strong></td>
+            <td>Les administrateurs peuvent exclure des sources (ex : documentation ServiceNow officielle) pour concentrer l'effort de revue sur le contenu pertinent.</td>
+        </tr>
+        <tr>
+            <td><strong>Sécurité granulaire</strong></td>
+            <td>Quatre rôles hiérarchiques (Consumer → Reviewer → Coordinator → Admin) avec des ACL spécifiques par table et par champ.</td>
+        </tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>4. Architecture technique</h2>
+
+<h3>4.1. Structure du projet</h3>
+
+<pre><code>Knowledge Trust Manager/
+├── now.config.json          # Configuration scope &amp; SDK
+├── package.json             # Dépendances (React 18, SDK 4.5)
+└── src/
+    ├── client/              # Interface React (SPA)
+    │   ├── App.jsx          # Routeur principal (hash-based)
+    │   ├── components/      # 13 composants réutilisables
+    │   ├── hooks/           # 4 React hooks custom
+    │   ├── pages/           # 7 pages (Home, Articles, Detail, Mods, Analytics, Config)
+    │   └── services/api.js  # Couche API (REST + Table API)
+    ├── fluent/              # Définitions Fluent DSL (.now.ts)
+    │   ├── articleList.now.ts         # Table Article List
+    │   ├── reviewRecord.now.ts        # Table Review Record
+    │   ├── modificationRequest.now.ts # Table Modification Request (extends task)
+    │   ├── sourceExclusion.now.ts     # Table Source Exclusion
+    │   ├── roles.now.ts               # 4 rôles applicatifs
+    │   ├── acls.now.ts                # 17 ACLs (record + field level)
+    │   ├── businessRules.now.ts       # 8 Business Rules
+    │   ├── restApi.now.ts             # API REST (16 routes)
+    │   ├── properties.now.ts          # 5 propriétés système
+    │   ├── navigation.now.ts          # Menu applicatif + 6 modules
+    │   ├── crossScopePrivileges.now.ts# 7 cross-scope privileges
+    │   ├── uiPage.now.ts             # UI Page (point d'entrée React)
+    │   └── demoData.now.ts           # Données de démonstration
+    └── server/              # Scripts serveur (Business Rules + API handlers)
+        ├── apiHandlers.js            # 13 handlers REST
+        ├── syncHandlers.js           # Synchronisation connecteurs
+        ├── reviewRecordScripts.js    # Logique BR review records
+        ├── modificationRequestScripts.js # Logique BR mod requests
+        └── sourceExclusionScripts.js # Logique BR exclusions
+</code></pre>
+
+<h3>4.2. Couches applicatives</h3>
+
+<pre><code>┌─────────────────────────────────────────────────────┐
+│                    PRÉSENTATION                      │
+│   React 18 SPA (UI Page) — Hash-based Routing        │
+│   Composants : KPICard, DataTable, DonutChart,       │
+│   BarChart, FilterBar, StatusPill, Modals            │
+├─────────────────────────────────────────────────────┤
+│                   SERVICE LAYER                      │
+│   api.js — REST API Client + Table API Client        │
+│   AI Search API (sync externe)                       │
+├─────────────────────────────────────────────────────┤
+│                    API REST                           │
+│   Scripted REST API v1 — 16 routes                   │
+│   Base URI: /api/x_snc_knowledge_tr/v1/ktm/          │
+├─────────────────────────────────────────────────────┤
+│              LOGIQUE MÉTIER (SERVER)                  │
+│   8 Business Rules (before/after insert/update)      │
+│   Validation, auto-population, cascade updates       │
+├─────────────────────────────────────────────────────┤
+│                 MODÈLE DE DONNÉES                    │
+│   4 tables custom + extension task                   │
+│   Indexes, choix, références croisées                │
+├─────────────────────────────────────────────────────┤
+│                    SÉCURITÉ                           │
+│   4 rôles hiérarchiques + 17 ACLs                    │
+│   7 Cross-Scope Privileges                           │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+
+<hr/>
+
+<h2>5. Modèle de données</h2>
+
+<h3>5.1. Knowledge Review Record (<code>x_snc_knowledge_tr_review_record</code>)</h3>
+<p><strong>Table centrale</strong> de l'application. Chaque enregistrement représente un article à superviser, qu'il provienne de <code>kb_knowledge</code> ou d'un connecteur externe.</p>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#2A5F7E; color:#fff;">
+            <th>Champ</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>article</td><td>Reference (kb_knowledge)</td><td>Lien vers l'article KB interne (optionnel pour les docs externes)</td></tr>
+        <tr><td>external_doc_id</td><td>String (255)</td><td>Identifiant unique du document externe</td></tr>
+        <tr><td>external_doc_title</td><td>String (500)</td><td>Titre du document externe</td></tr>
+        <tr><td>external_doc_url</td><td>URL</td><td>Lien direct vers le document source</td></tr>
+        <tr><td>display_title</td><td>String (500)</td><td>Titre d'affichage (calculé)</td></tr>
+        <tr><td>review_status</td><td>Choice</td><td>pending_review | in_review | approved | modification_requested | re_review_needed</td></tr>
+        <tr><td>freshness_score</td><td>Choice</td><td>fresh | aging | stale</td></tr>
+        <tr><td>assigned_reviewer</td><td>Reference (sys_user)</td><td>Reviewer assigné</td></tr>
+        <tr><td>reviewer_group</td><td>Reference (sys_user_group)</td><td>Groupe de reviewers</td></tr>
+        <tr><td>last_reviewed_on / last_reviewed_by</td><td>DateTime / Reference</td><td>Date et auteur de la dernière revue</td></tr>
+        <tr><td>content_hash</td><td>String (64)</td><td>Hash du contenu pour détecter les changements</td></tr>
+        <tr><td>review_notes</td><td>String (4000)</td><td>Notes de revue (obligatoire pour approbation)</td></tr>
+        <tr><td>days_since_last_review / days_since_last_update</td><td>Integer (read-only)</td><td>Métriques calculées d'ancienneté</td></tr>
+        <tr><td>source_connector_name / source_connector_type</td><td>String / Choice</td><td>Nom et type du connecteur source</td></tr>
+    </tbody>
+</table>
+
+<h3>5.2. Knowledge Modification Request (<code>x_snc_knowledge_tr_modification_request</code>)</h3>
+<p><strong>Étend la table <code>task</code></strong> — hérite de tous les champs task (state, priority, assigned_to, SLA, etc.) avec numérotation automatique <strong>KMR</strong>.</p>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#2A5F7E; color:#fff;">
+            <th>Champ</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>review_record</td><td>Reference (review_record)</td><td>Lien vers le review record concerné (obligatoire)</td></tr>
+        <tr><td>modification_type</td><td>Choice</td><td>content_update | factual_correction | outdated_info | missing_section | formatting_issue | retire_article</td></tr>
+        <tr><td>target_resolution_date</td><td>Date</td><td>Date cible de résolution</td></tr>
+        <tr><td>resolution_summary</td><td>String (4000)</td><td>Résumé de la résolution (obligatoire à la clôture)</td></tr>
+        <tr><td>requested_by_reviewer</td><td>Reference (sys_user)</td><td>Reviewer à l'origine de la demande</td></tr>
+    </tbody>
+</table>
+
+<h3>5.3. Liste des articles (<code>x_snc_knowledge_tr_article_list</code>)</h3>
+<p>Catalogue central de tous les articles synchronisés. Permet une navigation unifiée avec titre, URL et liaison au review record.</p>
+
+<h3>5.4. Exclusion de sources (<code>x_snc_knowledge_tr_source_exclusion</code>)</h3>
+<p>Table de configuration permettant d'exclure des connecteurs spécifiques (ex: documentation officielle ServiceNow) de toutes les vues et analyses.</p>
+
+<hr/>
+
+<h2>6. Sécurité — Rôles &amp; ACL</h2>
+
+<h3>6.1. Hiérarchie des rôles</h3>
+
+<pre><code>x_snc_knowledge_tr.admin (Scoped Admin)
+  └── x_snc_knowledge_tr.coordinator
+        └── x_snc_knowledge_tr.reviewer
+              └── x_snc_knowledge_tr.consumer
+</code></pre>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Rôle</th>
+            <th>Capacités</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><strong>Consumer</strong></td><td>Lecture seule sur les review records, articles et statuts des modification requests.</td></tr>
+        <tr><td><strong>Reviewer</strong></td><td>+ Approuver/rejeter des articles, créer des modification requests, ajouter des notes de revue, modifier les review records.</td></tr>
+        <tr><td><strong>Coordinator</strong></td><td>+ Gérer les assignations en masse, monitorer les SLA, accéder à toutes les analytics, recevoir les notifications digest.</td></tr>
+        <tr><td><strong>Admin</strong></td><td>+ Configurer les exclusions de sources, gérer les propriétés système (seuils de fraîcheur, SLA), gérer les rôles, créer/supprimer des records.</td></tr>
+    </tbody>
+</table>
+
+<h3>6.2. ACL (17 règles)</h3>
+<p>Chaque table dispose de 4 ACL (read/create/write/delete) plus une ACL field-level sur <code>review_notes</code> :</p>
+<ul>
+    <li><strong>Review Record :</strong> Lecture libre, écriture reviewer+, création/suppression admin uniquement</li>
+    <li><strong>Modification Request :</strong> Lecture libre, création/écriture reviewer+, suppression admin uniquement</li>
+    <li><strong>Source Exclusion :</strong> Lecture libre, tout le reste admin uniquement</li>
+    <li><strong>Article List :</strong> Lecture libre, tout le reste admin uniquement</li>
+</ul>
+
+<hr/>
+
+<h2>7. API REST</h2>
+
+<p><strong>Base URI :</strong> <code>/api/x_snc_knowledge_tr/v1/ktm/</code></p>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#2A5F7E; color:#fff;">
+            <th>Méthode</th>
+            <th>Route</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>GET</td><td>/review-records</td><td>Liste paginée et filtrable des review records</td></tr>
+        <tr><td>GET</td><td>/review-records/{id}</td><td>Détail d'un review record avec contenu article</td></tr>
+        <tr><td>PATCH</td><td>/review-records/{id}</td><td>Mise à jour (approbation, assignation, notes)</td></tr>
+        <tr><td>GET</td><td>/modification-requests</td><td>Liste paginée des modification requests</td></tr>
+        <tr><td>POST</td><td>/modification-requests</td><td>Créer une nouvelle modification request</td></tr>
+        <tr><td>GET</td><td>/analytics/kpis</td><td>KPI résumés (total articles, taux approbation, taux obsolescence)</td></tr>
+        <tr><td>GET</td><td>/analytics/source-health</td><td>Santé par connecteur (scorecard)</td></tr>
+        <tr><td>GET</td><td>/analytics/modification-stats</td><td>Statistiques modification requests (par état, par type, temps moyen)</td></tr>
+        <tr><td>GET</td><td>/analytics/reviewer-stats</td><td>Performance reviewers (assignations, top reviewers, non-assignés)</td></tr>
+        <tr><td>GET</td><td>/analytics/freshness-stats</td><td>Distribution fraîcheur, buckets d'âge, couverture par source</td></tr>
+        <tr><td>GET</td><td>/source-exclusions</td><td>Liste des exclusions de sources</td></tr>
+        <tr><td>GET</td><td>/connectors</td><td>Connecteurs actifs distincts (pour les filtres)</td></tr>
+        <tr><td>GET</td><td>/article-list</td><td>Liste paginée des articles synchronisés</td></tr>
+        <tr><td>POST</td><td>/sync-connectors</td><td>Scanner les articles KB publiés et créer les review records</td></tr>
+        <tr><td>POST</td><td>/sync-external-docs</td><td>Créer review records depuis des documents externes (AI Search)</td></tr>
+        <tr><td>GET</td><td>/connector-host</td><td>URL de base d'un connecteur externe</td></tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>8. Business Rules &amp; automatisations</h2>
+
+<h3>8.1. Review Record (3 règles)</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Règle</th>
+            <th>Quand</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Set Re-Review on Content Change</td><td>Before Update</td><td>Si <code>content_hash</code> change → <code>review_status = re_review_needed</code>, <code>last_reviewed_on</code> vidé</td></tr>
+        <tr><td>Auto-populate Source Metadata</td><td>Before Insert</td><td>Lit l'article KB lié et remplit automatiquement <code>source_connector_name</code>, <code>source_connector_type</code>, <code>last_external_update</code></td></tr>
+        <tr><td>Prevent Approval Without Notes</td><td>Before Update</td><td>Bloque le passage à "approved" si <code>review_notes</code> est vide</td></tr>
+    </tbody>
+</table>
+
+<h3>8.2. Modification Request (3 règles)</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Règle</th>
+            <th>Quand</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Update Review Status on Creation</td><td>After Insert</td><td>Met le review record lié en <code>modification_requested</code></td></tr>
+        <tr><td>Set Re-Review on Resolution</td><td>After Update</td><td>Quand state → resolved, met le review record en <code>re_review_needed</code></td></tr>
+        <tr><td>Require Resolution Summary</td><td>Before Update</td><td>Bloque la résolution si <code>resolution_summary</code> est vide</td></tr>
+    </tbody>
+</table>
+
+<h3>8.3. Source Exclusion (2 règles)</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Règle</th>
+            <th>Quand</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Deactivate Reviews for Excluded Source</td><td>After Insert/Update</td><td>Quand une exclusion est active, désactive tous les review records de cette source</td></tr>
+        <tr><td>Reactivate on Exclusion Removal</td><td>After Update</td><td>Quand une exclusion est désactivée, réactive les review records correspondants</td></tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>9. Interface utilisateur (React SPA)</h2>
+
+<p>L'interface est une <strong>Single Page Application React 18</strong> servie via une <code>UiPage</code> ServiceNow, accessible à <code>x_snc_knowledge_tr_workspace.do</code>.</p>
+
+<h3>9.1. Pages</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#2A5F7E; color:#fff;">
+            <th>Page</th>
+            <th>Route</th>
+            <th>Fonctionnalité</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Home</td><td>#home</td><td>Dashboard avec KPI, articles récents nécessitant attention</td></tr>
+        <tr><td>Article List</td><td>#article-list</td><td>Catalogue complet avec filtres par source, type, pagination</td></tr>
+        <tr><td>Article Detail</td><td>#detail/{id}</td><td>Fiche détaillée, contenu article, actions (approuver, modifier, réassigner, supprimer)</td></tr>
+        <tr><td>Modification Requests</td><td>#modifications</td><td>Liste des demandes de modification avec filtres</td></tr>
+        <tr><td>Mod Request Detail</td><td>#mod-detail/{id}</td><td>Détail d'une modification request</td></tr>
+        <tr><td>Analytics</td><td>#analytics</td><td>Tableaux de bord : fraîcheur, santé par source, performance reviewers, statistiques modifications</td></tr>
+        <tr><td>Configuration</td><td>#config</td><td>Gestion des exclusions de sources, synchronisation connecteurs</td></tr>
+    </tbody>
+</table>
+
+<h3>9.2. Composants réutilisables (13)</h3>
+<ul>
+    <li><strong>KPICard</strong> — Carte KPI avec valeur, tendance et couleur</li>
+    <li><strong>DataTable</strong> — Tableau de données avec tri et pagination</li>
+    <li><strong>FilterBar</strong> — Barre de filtres dynamiques (pills)</li>
+    <li><strong>StatusPill</strong> — Badge coloré selon le statut (review_status, freshness_score)</li>
+    <li><strong>DonutChart</strong> — Graphique donut pour les distributions</li>
+    <li><strong>BarChart</strong> — Graphique à barres pour les comparaisons</li>
+    <li><strong>ScorecardTable</strong> — Tableau scorecard santé par source</li>
+    <li><strong>NavSidebar</strong> — Navigation latérale avec icônes</li>
+    <li><strong>ActionButtonBar</strong> — Barre d'actions contextuelles</li>
+    <li><strong>ApproveModal / ModificationModal / ReassignModal / RemovalModal</strong> — Modales d'action</li>
+</ul>
+
+<h3>9.3. Hooks custom (4)</h3>
+<ul>
+    <li><code>useArticleList</code> — Gestion de la liste d'articles avec filtres et pagination</li>
+    <li><code>useArticleDetail</code> — Chargement des détails d'un article</li>
+    <li><code>useKPIData</code> — Récupération des données KPI</li>
+    <li><code>useReviewRecords</code> — Gestion des review records</li>
+</ul>
+
+<hr/>
+
+<h2>10. Propriétés système configurables</h2>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead>
+        <tr style="background-color:#1B3A4B; color:#fff;">
+            <th>Propriété</th>
+            <th>Défaut</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><code>x_snc_knowledge_tr.freshness.fresh_threshold</code></td><td>30</td><td>Nombre de jours max pour qu'un article soit considéré "Fresh"</td></tr>
+        <tr><td><code>x_snc_knowledge_tr.freshness.stale_threshold</code></td><td>90</td><td>Nombre de jours au-delà duquel un article est "Stale"</td></tr>
+        <tr><td><code>x_snc_knowledge_tr.sla.review_days</code></td><td>5</td><td>SLA en jours ouvrés pour la revue initiale</td></tr>
+        <tr><td><code>x_snc_knowledge_tr.sla.modification_days</code></td><td>10</td><td>SLA en jours ouvrés pour résoudre une modification request</td></tr>
+        <tr><td><code>x_snc_knowledge_tr.sla.re_review_days</code></td><td>3</td><td>SLA en jours ouvrés pour la re-revue post-modification</td></tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>11. Intégrations — External Content Connectors</h2>
+
+<h3>11.1. Sources supportées</h3>
+<ul>
+    <li><strong>Confluence Cloud</strong> — via <code>sn_ext_conn_cc</code></li>
+    <li><strong>SharePoint Online</strong> — via <code>sn_ext_conn_sp</code></li>
+    <li><strong>Web Crawler</strong> — via <code>sn_ext_conn_wc</code></li>
+    <li><strong>ServiceNow Docs</strong> — via <code>sn_ext_conn_sn_docs</code></li>
+    <li><strong>Google Drive</strong> — détection automatique par nom de source</li>
+</ul>
+
+<h3>11.2. Mécanisme de synchronisation</h3>
+<p>La synchronisation s'effectue en deux phases :</p>
+<ol>
+    <li><strong>Sync Article List :</strong> Utilise l'API AI Search (<code>/api/now/aisa/search</code>) pour découvrir tous les documents indexés, filtre les documents issus de connecteurs externes (exclut kb_knowledge, incidents, etc.), puis crée/met à jour les entrées dans <code>article_list</code>.</li>
+    <li><strong>Sync Review Records :</strong> Pour chaque document externe découvert, vérifie si un review record existe déjà (par <code>external_doc_id</code>), et en crée un nouveau si nécessaire avec le statut <code>pending_review</code>.</li>
+</ol>
+
+<h3>11.3. Cross-Scope Privileges (7)</h3>
+<p>L'application déclare des privilèges cross-scope pour accéder en lecture aux tables des connecteurs externes :</p>
+<ul>
+    <li><code>sn_ext_conn_admin_connector_summary</code> — Résumé des connecteurs actifs</li>
+    <li><code>sn_ext_conn_cc_external_search_schema</code> — Schéma Confluence Cloud</li>
+    <li><code>sn_ext_conn_sp_external_search_schema</code> — Schéma SharePoint</li>
+    <li><code>sn_ext_conn_wc_external_search_schema</code> — Schéma Web Crawler</li>
+    <li><code>sn_ext_conn_sn_docs_external_search_schema</code> — Schéma ServiceNow Docs</li>
+    <li><code>v_ais_external_search_content</code> — Table virtuelle de contenu AI Search</li>
+    <li><code>sys_search_context_config</code> — Configuration des contextes de recherche</li>
+</ul>
+
+<hr/>
+
+<h2>12. Navigation applicative</h2>
+
+<p>L'application est accessible via le <strong>Application Navigator</strong> ServiceNow sous le menu <strong>"Knowledge Trust Manager"</strong> :</p>
+
+<ul>
+    <li>🏠 <strong>Workspace</strong> — Ouvre l'interface SPA React (rôle : consumer+)</li>
+    <li>─── <em>Data</em> ───</li>
+    <li>📋 <strong>Review Records</strong> — Liste platform des review records (rôle : consumer+)</li>
+    <li>📝 <strong>Modification Requests</strong> — Liste platform des KMR (rôle : consumer+)</li>
+    <li>─── <em>Administration</em> ───</li>
+    <li>🚫 <strong>Source Exclusions</strong> — Gestion des exclusions (rôle : admin)</li>
+</ul>
+
+<hr/>
+
+<h2>13. Données de démonstration</h2>
+
+<p>L'application inclut 2 enregistrements de démonstration dans la table <code>source_exclusion</code> :</p>
+<ul>
+    <li><strong>ServiceNow Product Documentation</strong> — Exclu (hors périmètre, maintenu par ServiceNow)</li>
+    <li><strong>ServiceNow Developer Documentation</strong> — Exclu (hors périmètre, maintenu par ServiceNow)</li>
+</ul>
+<p>Les review records et modification requests sont créés dynamiquement par les mécanismes de synchronisation et les actions des reviewers.</p>
+
+<hr/>
+
+<h2>14. Guide de démarrage rapide</h2>
+
+<ol>
+    <li><strong>Installer l'application</strong> sur votre instance ServiceNow</li>
+    <li><strong>Configurer les External Content Connectors</strong> (Confluence, SharePoint, etc.) si ce n'est pas déjà fait</li>
+    <li><strong>Attribuer les rôles</strong> aux utilisateurs :
+        <ul>
+            <li>Rôle <code>consumer</code> aux lecteurs</li>
+            <li>Rôle <code>reviewer</code> aux experts métier</li>
+            <li>Rôle <code>coordinator</code> aux Knowledge Managers</li>
+            <li>Rôle <code>admin</code> aux administrateurs</li>
+        </ul>
+    </li>
+    <li><strong>Ouvrir le Workspace</strong> via le menu applicatif et lancer une synchronisation depuis la page Configuration</li>
+    <li><strong>Ajuster les seuils</strong> de fraîcheur et SLA via les propriétés système si nécessaire</li>
+    <li><strong>Commencer les revues !</strong> Les articles apparaissent automatiquement avec leur score de fraîcheur</li>
+</ol>
+
+<hr/>
+
+<p><em>Document généré automatiquement à partir de l'analyse du code source de l'application Knowledge Trust Manager (scope: x_snc_knowledge_tr).</em></p>

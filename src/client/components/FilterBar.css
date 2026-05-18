@@ -1,0 +1,28 @@
+/* FilterBar — Horizon-polished with BNP brand pills */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 0; }
+.filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-pill {
+    padding: 6px 16px; border-radius: var(--bnp-radius-pill);
+    border: 1px solid var(--bnp-border);
+    background: var(--bnp-white); color: var(--bnp-text-secondary);
+    font: var(--bnp-font-caption); font-weight: 500;
+    transition: all var(--bnp-transition-fast);
+}
+.filter-pill:hover { border-color: var(--bnp-green-primary); color: var(--bnp-green-primary); }
+.filter-pill--active {
+    background: var(--bnp-green-primary); color: #fff; border-color: var(--bnp-green-primary);
+}
+.filter-dropdowns { display: flex; gap: 12px; margin-left: auto; }
+.filter-dropdown { display: flex; flex-direction: column; gap: 2px; }
+.filter-dropdown__label { font: var(--bnp-font-caption); color: var(--bnp-text-secondary); }
+.filter-dropdown select {
+    padding: 6px 10px; border: 1px solid var(--bnp-border);
+    border-radius: var(--bnp-radius-input);
+    font: var(--bnp-font-body); background: var(--bnp-white); color: var(--bnp-text-dark);
+    transition: border-color var(--bnp-transition-fast);
+}
+.filter-dropdown select:hover { border-color: var(--bnp-border-strong, var(--bnp-border)); }
+.filter-dropdown select:focus {
+    outline: none; border-color: var(--bnp-green-accent);
+    box-shadow: 0 0 0 3px rgba(0,168,107,0.15);
+}

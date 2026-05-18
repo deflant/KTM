@@ -1,0 +1,26 @@
+{
+    "name": "x-snc-knowledge-trust-manager",
+    "version": "1.0.0",
+    "description": "[BUILD AGENT GENERATED]:  A centralized workspace to monitor, review, approve, and maintain knowledge articles sourced from multiple External Content Connectors (Confluence, SharePoint, etc.), ensuring knowledge bases stay accurate, current, and trustworthy. Features include unified knowledge explorer, review workflows, modification request lifecycle, freshness scoring, analytics dashboards, and BNP Paribas branded React UI pages.",
+    "license": "UNLICENSED",
+    "imports": {
+        "#now:*": "./@types/servicenow/fluent/*/index.js"
+    },
+    "scripts": {
+        "build": "now-sdk build",
+        "deploy": "now-sdk install",
+        "transform": "now-sdk transform",
+        "types": "now-sdk dependencies"
+    },
+    "dependencies": {
+        "react": "18.2.0",
+        "react-dom": "18.2.0"
+    },
+    "devDependencies": {
+        "@servicenow/sdk": "4.6.0",
+        "@servicenow/glide": "27.0.4",
+        "eslint": "8.50.0",
+        "@servicenow/eslint-plugin-sdk-app-plugin": "4.6.0",
+        "@types/react": "18.3.12"
+    }
+}

@@ -1,0 +1,28 @@
+/* NavSidebar — BNP brand nav with Horizon transitions */
+.nav-sidebar {
+    width: 220px; min-height: 100vh;
+    background: var(--bnp-green-dark); color: #fff;
+    display: flex; flex-direction: column;
+    position: fixed; left: 0; top: 0; z-index: 100;
+}
+.nav-sidebar__header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.nav-sidebar__logo { font-size: 28px; }
+.nav-sidebar__title { font: var(--bnp-font-h3); color: #fff; }
+.nav-sidebar__list { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; }
+.nav-sidebar__item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    background: none; border: none; color: rgba(255,255,255,0.75); padding: 12px 16px;
+    font: var(--bnp-font-body); text-align: left; border-radius: 0;
+    transition: background var(--bnp-transition-fast), color var(--bnp-transition-fast);
+}
+.nav-sidebar__item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-sidebar__item--active {
+    background: var(--bnp-green-primary); color: #fff; font-weight: 600;
+    box-shadow: inset 3px 0 0 0 #fff;
+}
+.nav-sidebar__icon { font-size: 18px; width: 24px; text-align: center; }
+.nav-sidebar__label { white-space: nowrap; }

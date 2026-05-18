@@ -1,0 +1,39 @@
+/* ScorecardTable — BNP brand + Horizon indicator tokens */
+.scorecard { margin: 0; }
+.scorecard__title { font: var(--bnp-font-h3); margin: 0 0 12px 0; }
+.scorecard__table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bnp-white);
+    border-radius: var(--bnp-radius-card);
+    overflow: hidden;
+    box-shadow: var(--bnp-shadow-card);
+}
+.scorecard__table th {
+    background: var(--bnp-green-dark); color: #fff;
+    font: var(--bnp-font-caption); font-weight: 600;
+    padding: 10px 14px; text-align: left;
+}
+.scorecard__table td {
+    padding: 10px 14px; font: var(--bnp-font-body);
+    border-bottom: 1px solid var(--bnp-border);
+}
+.scorecard__name { font-weight: 600; }
+.scorecard__table tbody tr { transition: background var(--bnp-transition-fast); }
+.scorecard__table tbody tr:hover { background: var(--bnp-row-hover); }
+
+/* Semantic cell indicators — Horizon tokens */
+.cell--good {
+    background: rgb(var(--now-indicator--tertiary_positive--background-color, 202,223,192));
+    color: var(--bnp-green-dark);
+    font-weight: 600;
+}
+.cell--warn {
+    background: rgb(var(--now-indicator--tertiary_warning--background-color, 251,247,191));
+    color: rgb(var(--now-indicator--primary_warning--border-color, 182,170,0));
+    font-weight: 600;
+}
+.cell--bad {
+    background: rgb(var(--now-indicator--tertiary_critical--background-color, 248,200,205));
+    color: var(--bnp-error);
+    font-weight: 600;
+}

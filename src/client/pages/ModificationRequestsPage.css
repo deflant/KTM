@@ -1,0 +1,26 @@
+/* ModificationRequestsPage — Horizon-polished */
+.mod-page { display: flex; flex-direction: column; gap: 16px; }
+.mod-page h1 { font: var(--bnp-font-h1); margin: 0; }
+
+.mod-page__header { display: flex; align-items: baseline; gap: 12px; }
+.mod-page__count {
+    font: var(--bnp-font-caption); color: var(--bnp-text-secondary);
+    background: var(--bnp-green-light); padding: 3px 10px;
+    border-radius: var(--bnp-radius-pill);
+}
+
+.mod-page__error {
+    padding: 12px 16px; border-radius: var(--bnp-radius-input);
+    background: rgb(var(--now-indicator--tertiary_critical--background-color, 248,200,205));
+    color: var(--bnp-error); font-size: 13px;
+    border: 1px solid rgb(var(--now-indicator--secondary_critical--border-color, 228,35,56));
+}
+
+.mod-page__loading {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px; color: var(--bnp-text-secondary);
+}
+.mod-page__spinner {
+    font-size: 32px; animation: mod-spin 1s linear infinite; display: inline-block;
+}
+@keyframes mod-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

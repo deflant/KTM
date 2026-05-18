@@ -1,0 +1,25 @@
+/* StatusPill — Horizon indicator tokens + BNP green */
+.status-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: var(--bnp-radius-pill);
+    font: var(--bnp-font-caption);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.pill--success {
+    background-color: rgb(var(--now-indicator--secondary_positive--background-color, 126,177,101));
+    color: #fff;
+}
+.pill--warning {
+    background-color: var(--bnp-warning);
+    color: #fff;
+}
+.pill--error {
+    background-color: var(--bnp-error);
+    color: #fff;
+}
+.pill--muted {
+    background-color: rgb(var(--now-color_border--primary, 115,127,132));
+    color: #fff;
+}

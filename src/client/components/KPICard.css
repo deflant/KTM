@@ -1,0 +1,21 @@
+/* KPICard — Horizon-polished with BNP accents */
+.kpi-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bnp-white);
+    border-radius: var(--bnp-radius-card);
+    border: 1px solid var(--bnp-border);
+    box-shadow: var(--bnp-shadow-card);
+    padding: 16px 20px; flex: 1; min-width: 180px;
+    transition: box-shadow var(--bnp-transition-fast);
+}
+.kpi-card:hover { box-shadow: var(--bnp-shadow-card-hover); }
+.kpi-card__icon { font-size: 28px; opacity: 0.85; }
+.kpi-card__body { display: flex; flex-direction: column; }
+.kpi-card__value { font: var(--bnp-font-h2); color: var(--bnp-text-dark); }
+.kpi-card__label { font: var(--bnp-font-caption); color: var(--bnp-text-secondary); }
+.kpi-card__trend { font: var(--bnp-font-caption); font-weight: 600; margin-left: auto; }
+.trend--up { color: var(--bnp-green-primary); }
+.trend--down { color: var(--bnp-error); }
+.kpi-card.accent-green .kpi-card__value { color: var(--bnp-green-primary); }
+.kpi-card.accent-warning .kpi-card__value { color: var(--bnp-warning); }
+.kpi-card.accent-error .kpi-card__value { color: var(--bnp-error); }
